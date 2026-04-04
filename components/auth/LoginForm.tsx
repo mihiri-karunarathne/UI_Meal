@@ -17,26 +17,38 @@ export default function LoginForm() {
   const roles = ['Doctor', 'Nurse', 'Clerk', 'Kitchen'];
 
 
-  const handleLogin = async () => {
-    setError("");
-    setLoading(true);
+ const handleLogin = async () => {
+  setError("");
+  setLoading(true);
 
-    // Simulate API delay
-    await new Promise((res) => setTimeout(res, 1000));
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        password,
+        role: selectedRole,
+      }),
+    });
 
-    // 🔐 Dummy role-based login
-    if (userId === "doctor" && password === "123") {
-      router.push("/doctor");
-    } else if (userId === "nurse" && password === "123") {
-      router.push("/nurse");
-    } else if (userId === "admin" && password === "123") {
-      router.push("/admin");
-    } else {
-      setError("Invalid User ID or Password");
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Login failed");
     }
 
-    setLoading(false);
-  };
+    // Redirect based on role from backend
+    router.push(`/${data.role.toLowerCase()}`);
+
+  } catch (err: any) {
+    setError(err.message);
+  }
+
+  setLoading(false);
+};
 
   return (
     <div className="w-[400px] bg-white pt-[9px] px-[8px] pb-[8px] rounded-2xl shadow-sm">
